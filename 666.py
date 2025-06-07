@@ -28,19 +28,22 @@ with tab1:
 # Tab 2: Gemini 聊天功能
 with tab2:
     st.subheader("與 Gemini 聊天")
-    api_key = st.text_input("輸入你的 Gemini API 金鑰", type="password")
+
+    api_key = st.text_input("請輸入 Gemini API 金鑰", type="password")
     user_input = st.text_area("請輸入問題：", placeholder="你想問 Gemini 什麼？")
 
-    if api_key and user_input:
-        try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(model_name="models/gemini-pro")  # ✅ 使用正確模型名稱
-            chat = model.start_chat()
-            response = chat.send_message(user_input)
-
-            st.markdown("### 💡 Gemini 回覆：")
-            st.success(response.text)
-        except Exception as e:
-            st.error(f"⚠️ 發生錯誤：{e}")
-    else:
-        st.info("請先輸入 API 金鑰與問題內容。")
+    if st.button("🚀 送出對話"):
+        if not api_key.strip():
+            st.warning("⚠️ 請輸入有效的 API 金鑰。")
+        elif not user_input.strip():
+            st.warning("⚠️ 請輸入你要問的問題。")
+        else:
+            genai.configure(api_key=api_key.strip())
+            try:
+                model = genai.GenerativeModel(model_name="models/gemini-pro")
+                chat = model.start_chat()
+                response = chat.send_message(user_input)
+                st.markdown("### 💡 Gemini 回覆：")
+                st.success(response.text)
+            except Exception as e:
+                st.error(f"❌ 發生錯誤：{e}")
