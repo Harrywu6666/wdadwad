@@ -1,53 +1,42 @@
 import streamlit as st
+import google.generativeai as genai
 import pandas as pd
-import requests
 
-# 網頁標題與主題顏色
-st.set_page_config(page_title="AI x 資料集探索", page_icon="📊", layout="wide")
+# Streamlit 設定
+st.set_page_config(page_title="Gemini AI x 資料集探索", layout="wide")
 
-st.title("📊 資料集探索與 Gemini AI 聊天助手 🤖")
+st.title("📊 資料集 + Gemini AI 對話")
 
-# 分頁選擇
-tab1, tab2 = st.tabs(["📂 資料集上傳", "💬 Gemini 聊天助手"])
+tab1, tab2 = st.tabs(["📂 上傳 CSV", "💬 Gemini 聊天"])
 
-# 1. 資料集上傳功能
+# Tab 1: CSV 資料上傳
 with tab1:
-    st.subheader("上傳 CSV 資料集")
-    uploaded_file = st.file_uploader("請選擇一個 CSV 檔案", type=["csv"])
-    if uploaded_file is not None:
+    st.subheader("上傳你的 CSV 檔案")
+    uploaded_file = st.file_uploader("選擇 CSV 檔案", type=["csv"])
+    if uploaded_file:
         df = pd.read_csv(uploaded_file)
-        st.success("檔案上傳成功！")
+        st.success("檔案成功上傳！")
         st.dataframe(df)
 
-# 2. Gemini API 串接功能
+# Tab 2: Gemini 聊天功能
 with tab2:
-    st.subheader("與 Gemini 對話")
-    user_input = st.text_area("請輸入你的問題：", placeholder="輸入問題...")
-    api_key = st.text_input("請輸入 Gemini API 金鑰", type="password")
+    st.subheader("與 Gemini 聊天")
 
-    if st.button("送出"):
-        if api_key and user_input:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}"
-            }
-            payload = {
-                "contents": [{"parts": [{"text": user_input}]}]
-            }
-            response = requests.post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
-                headers=headers,
-                json=payload,
-                params={"key": api_key}
-            )
-            if response.status_code == 200:
-                result = response.json()
-                ai_text = result['candidates'][0]['content']['parts'][0]['text']
-                st.write("💡 Gemini 回覆：")
-                st.success(ai_text)
-            else:
-                st.error("請確認 API 金鑰與輸入是否正確。")
-        else:
-            st.warning("請輸入 API 金鑰與內容。")
+    api_key = st.text_input("輸入你的 Gemini API 金鑰", type="password")
 
+    user_input = st.text_area("請輸入問題：", placeholder="你想問 Gemini 什麼？")
 
+    if api_key and user_input:
+        genai.configure(api_key=api_key)
+
+        try:
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content(user_input)
+
+            st.markdown("### 💡 Gemini 回覆：")
+            st.success(response.text)
+
+        except Exception as e:
+            st.error(f"發生錯誤：{e}")
+    else:
+        st.info("請先輸入 API 金鑰與問題內容。")
