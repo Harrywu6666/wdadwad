@@ -2,13 +2,12 @@ import streamlit as st
 import google.generativeai as genai
 import pandas as pd
 
-# Streamlit 設定
 st.set_page_config(page_title="Gemini AI x 資料集探索", layout="wide")
 st.title("📊 資料集 + Gemini AI 對話")
 
 tab1, tab2 = st.tabs(["📂 上傳 CSV", "💬 Gemini 聊天"])
 
-# Tab 1: CSV 資料上傳
+# Tab 1
 with tab1:
     st.subheader("上傳你的 CSV 檔案")
     uploaded_file = st.file_uploader("選擇 CSV 檔案", type=["csv"])
@@ -19,13 +18,13 @@ with tab1:
             try:
                 df = pd.read_csv(uploaded_file, encoding="big5")
             except Exception as e:
-                st.error(f"❌ 無法讀取檔案，請確認格式是否正確。錯誤訊息：{e}")
+                st.error(f"❌ 無法讀取檔案，錯誤訊息：{e}")
                 df = None
         if 'df' in locals() and df is not None:
             st.success("📄 檔案成功上傳！")
             st.dataframe(df)
 
-# Tab 2: Gemini 聊天功能
+# Tab 2
 with tab2:
     st.subheader("與 Gemini 聊天")
 
@@ -38,12 +37,21 @@ with tab2:
         elif not user_input.strip():
             st.warning("⚠️ 請輸入你要問的問題。")
         else:
-            genai.configure(api_key=api_key.strip())
             try:
-                model = genai.GenerativeModel(model_name="models/gemini-pro")
-                chat = model.start_chat()
-                response = chat.send_message(user_input)
-                st.markdown("### 💡 Gemini 回覆：")
-                st.success(response.text)
+                genai.configure(api_key=api_key.strip())
+                
+                # 顯示模型驗證
+                models = genai.list_models()
+                available = [m.name for m in models]
+                st.info(f"✅ 目前可用模型：{available}")
+                
+                if "models/gemini-pro" not in available:
+                    st.error("❌ 無法找到 gemini-pro，請檢查 API 金鑰或版本")
+                else:
+                    model = genai.GenerativeModel("models/gemini-pro")
+                    chat = model.start_chat()
+                    response = chat.send_message(user_input)
+                    st.markdown("### 💡 Gemini 回覆：")
+                    st.success(response.text)
             except Exception as e:
                 st.error(f"❌ 發生錯誤：{e}")
