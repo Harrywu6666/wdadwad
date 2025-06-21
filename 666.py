@@ -1,57 +1,41 @@
 import streamlit as st
-import google.generativeai as genai
 import pandas as pd
+import google.generativeai as genai
 
-st.set_page_config(page_title="Gemini AI x 資料集探索", layout="wide")
-st.title("📊 資料集 + Gemini AI 對話")
+# ---- 網頁標題 ----
+st.set_page_config(page_title="AI Data Viewer", layout="wide")
+st.title("📊 AI 資料探索 + Gemini 聊天")
 
-tab1, tab2 = st.tabs(["📂 上傳 CSV", "💬 Gemini 聊天"])
+# ---- 選單 ----
+menu = st.sidebar.selectbox("功能選擇", ["上傳與檢視資料集", "Gemini 問答"])
 
-# Tab 1
-with tab1:
-    st.subheader("上傳你的 CSV 檔案")
-    uploaded_file = st.file_uploader("選擇 CSV 檔案", type=["csv"])
+# ---- 功能一：CSV 上傳與顯示 ----
+if menu == "上傳與檢視資料集":
+    st.header("📂 上傳 CSV 資料集")
+    uploaded_file = st.file_uploader("請選擇檔案（CSV）", type="csv")
     if uploaded_file:
-        try:
-            df = pd.read_csv(uploaded_file, encoding="utf-8")
-        except UnicodeDecodeError:
-            try:
-                df = pd.read_csv(uploaded_file, encoding="big5")
-            except Exception as e:
-                st.error(f"❌ 無法讀取檔案，錯誤訊息：{e}")
-                df = None
-        if 'df' in locals() and df is not None:
-            st.success("📄 檔案成功上傳！")
-            st.dataframe(df)
+        df = pd.read_csv(uploaded_file)
+        st.success("✅ 資料成功上傳！")
+        st.dataframe(df)
 
-# Tab 2
-with tab2:
-    st.subheader("與 Gemini 聊天")
+# ---- 功能二：Gemini API 聊天 ----
+elif menu == "Gemini 問答":
+    st.header("💬 Gemini AI 聊天室")
 
-    api_key = st.text_input("請輸入 Gemini API 金鑰", type="password")
-    user_input = st.text_area("請輸入問題：", placeholder="你想問 Gemini 什麼？")
+    # API key 輸入（部署時用 secrets 管理）
+    api_key = st.text_input("請輸入你的 Gemini API 金鑰", type="password")
 
-    if st.button("🚀 送出對話"):
-        if not api_key.strip():
-            st.warning("⚠️ 請輸入有效的 API 金鑰。")
-        elif not user_input.strip():
-            st.warning("⚠️ 請輸入你要問的問題。")
-        else:
-            try:
-                genai.configure(api_key=api_key.strip())
-                
-                # 顯示模型驗證
-                models = genai.list_models()
-                available = [m.name for m in models]
-                st.info(f"✅ 目前可用模型：{available}")
-                
-                if "models/gemini-pro" not in available:
-                    st.error("❌ 無法找到 gemini-pro，請檢查 API 金鑰或版本")
-                else:
-                    model = genai.GenerativeModel("models/gemini-pro")
-                    chat = model.start_chat()
-                    response = chat.send_message(user_input)
-                    st.markdown("### 💡 Gemini 回覆：")
-                    st.success(response.text)
-            except Exception as e:
-                st.error(f"❌ 發生錯誤：{e}")
+    if api_key:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-pro")
+
+        user_input = st.text_area("請輸入你的問題")
+        if st.button("送出"):
+            with st.spinner("Gemini 回應中..."):
+                try:
+                    response = model.generate_content(user_input)
+                    st.markdown("### 🤖 Gemini 回應")
+                    st.write(response.text)
+                except Exception as e:
+                    st.error(f"❌ 發生錯誤：{e}")
+
