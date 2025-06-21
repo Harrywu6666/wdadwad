@@ -22,19 +22,18 @@ if menu == "上傳與檢視資料集":
 elif menu == "Gemini 問答":
     st.header("💬 Gemini AI 聊天室")
 
-    # API key 輸入（部署時用 secrets 管理）
-    api_key = st.text_input("請輸入你的 Gemini API 金鑰", type="password")
+    # 從 secrets.toml 讀取 API key
+    api_key = st.secrets["GEMINI_API_KEY"]
 
-    if api_key:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
-        user_input = st.text_area("請輸入你的問題")
-        if st.button("送出"):
-            with st.spinner("Gemini 回應中..."):
-                try:
-                    response = model.generate_content(user_input)
-                    st.markdown("### 🤖 Gemini 回應")
-                    st.write(response.text)
-                except Exception as e:
-                    st.error(f"❌ 發生錯誤：{e}")
+    user_input = st.text_area("請輸入你的問題")
+    if st.button("送出"):
+        with st.spinner("Gemini 回應中..."):
+            try:
+                response = model.generate_content(user_input)
+                st.markdown("### 🤖 Gemini 回應")
+                st.write(response.text)
+            except Exception as e:
+                st.error(f"❌ 發生錯誤：{e}")
