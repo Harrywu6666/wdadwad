@@ -27,7 +27,7 @@ elif menu == "Gemini 問答":
 
     if api_key:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-2.0-flash")
 
         user_input = st.text_area("請輸入你的問題")
         if st.button("送出"):
