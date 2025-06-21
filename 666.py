@@ -23,7 +23,7 @@ elif menu == "Gemini 問答":
     st.header("💬 Gemini AI 聊天室")
 
     # API key 輸入（部署時用 secrets 管理）
-    api_key = st.text_input("請輸入你的 Gemini API 金鑰", type="password")
+    api_key = st.text_input("請輸入你的 Gemini API 金鑰", type="AIzaSyDqB9ZbJjbnDlh0cn0qZHfoFQfsNFhLjFY")
 
     if api_key:
         genai.configure(api_key=api_key)
